@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
+const bodyParser = require('body-parser');
 const morgan = require('morgan');
+const mongoose = require('mongoose');
 
 require('dotenv/config');
 
@@ -9,6 +11,14 @@ const api = process.env.API_URL;
 // Middleware
 app.use(express.json());
 app.use(morgan('tiny'));
+
+const productSchema = mongoose.Schema({
+  name: String,
+  image: String,
+  countInStock: Number,
+})
+
+const Product = mongoose.model('Product', productSchema);
 
 app.get(`${api}/products`, (req, res)=>{
     const product = {
@@ -20,10 +30,24 @@ app.get(`${api}/products`, (req, res)=>{
 })
 
 app.post(`${api}/products`, (req, res)=>{
-    const newProduct = req.body;
-    console.log(newProduct)
+    const product = new Product({
+      name: req.body.name,
+      image: req.body.image,
+      countInStock: req.body.countInStock
+    })
     res.send(newProduct);
 })
+
+console.log('CONNECTION_STRING:', process.env.CONNECTION_STRING);
+
+mongoose
+  .connect(process.env.CONNECTION_STRING)
+  .then(() => {
+    console.log('Database connection is ready...');
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 app.listen(3000, ()=>{
     console.log('server is running http://localhost:3000');
