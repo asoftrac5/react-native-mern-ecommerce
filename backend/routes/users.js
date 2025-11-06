@@ -86,6 +86,37 @@ router.post('/register', async (req, res) => {
     return res.status(404).send('The user cannot be registered!')
     
     res.send(user);
-}) 
+})
+
+router.delete('/:id', async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'User not found!' });
+    }
+
+    return res
+      .status(200)
+      .json({ success: true, message: 'The user is deleted!' });
+  } catch (err) {
+    return res
+      .status(400)
+      .json({ success: false, error: err });
+  }
+});
+
+router.get(`/get/count`, async (req, res)=>{
+    const userCount = await User.countDocuments();
+
+    if(!userCount) {
+      res.status(500).json({success: false})
+    }
+    res.send({
+      userCount: userCount
+    });
+})
 
 module.exports = router;
