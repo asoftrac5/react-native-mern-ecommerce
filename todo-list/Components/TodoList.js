@@ -1,12 +1,12 @@
 import React, { useState} from 'react';
-import { View, Text, Button } from 'react-native';
+import { View, Text, Button, StyleSheet} from 'react-native';
 import Todo from './Todo';
 
 const TodoList = () => {
     const [title, setTitle] = useState('TodoList');
     return(
-        <View>
-            <Text>{title}</Text>
+        <View style={{ width: '80%', marginBottom: 60 }}>
+            <Text style={[styles.align, styles.font]}>{title}</Text>
             <Todo name = {'First Todo'}/>
             <Todo name = {'Second Todo'}/>
             <Button title='Change me' onPress={() => setTitle('My List')}/>
@@ -14,4 +14,13 @@ const TodoList = () => {
     )
 }
 
+const styles = StyleSheet.create({
+    align: {
+        alignSelf: 'center'
+    },
+    font: {
+        fontSize: 20,
+        fontWeight: 'bold',
+    }
+})
 export default TodoList;
