@@ -3,10 +3,12 @@ import { StyleSheet, Text, View } from 'react-native';
 
 // Screens
 import ProductContainer from './Screens/Products/ProductContainer';
+import Header from './Screens/Shared/Header';
 
 export default function App() {
   return (
     <View style={styles.container}>
+      <Header />
       <ProductContainer />
     </View>
   );
