@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
         alignContent: 'center',
         justifyContent: 'center',
         padding: 10,
-        marginTop: 120,
+        marginTop: 10, // Todo: Delete
     }
 })
 
