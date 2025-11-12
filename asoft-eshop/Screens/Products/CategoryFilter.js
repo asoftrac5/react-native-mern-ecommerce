@@ -21,7 +21,7 @@ const CategoryFilter = ({
       style={styles.scroll}
     >
       <View style={styles.row}>
-        {/* "All" badge */}
+        {/* "All" badge (virtual category) */}
         <TouchableOpacity
           onPress={() => categoryFilter('all')}
           style={[
@@ -39,7 +39,7 @@ const CategoryFilter = ({
           </Text>
         </TouchableOpacity>
 
-        {/* Category badges */}
+        {/* Real categories from JSON */}
         {categories.map((cat, index) => {
           const catId = cat._id ?? cat.id;
           const isActive = active === index;
