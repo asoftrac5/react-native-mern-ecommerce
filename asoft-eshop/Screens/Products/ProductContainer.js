@@ -1,21 +1,17 @@
-
 // Screens/Products/ProductContainer.js
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
 import {
-  Box,
-  Input,
-  InputField,
-  InputSlot,
-  InputIcon,
-  Icon,
-  Pressable,
+  View,
+  StyleSheet,
+  FlatList,
+  TextInput,
   Text,
-} from '@gluestack-ui/themed';
-import { SearchIcon, XIcon } from 'lucide-react-native';
+  TouchableOpacity,
+} from 'react-native';
 
 import ProductList from './ProductList';
 import SearchedProduct from './SearchedProducts';
+import Banner from '../Shared/Banner';
 
 const data = require('../../assets/data/products.json');
 
@@ -23,11 +19,11 @@ const ProductContainer = () => {
   const [products, setProducts] = useState([]);
   const [productsFiltered, setProductsFiltered] = useState([]);
   const [focus, setFocus] = useState(false);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     setProducts(data);
     setProductsFiltered(data);
-
     return () => {
       setProducts([]);
       setProductsFiltered([]);
@@ -36,15 +32,16 @@ const ProductContainer = () => {
   }, []);
 
   const searchProduct = (text) => {
-    const query = text.trim().toLowerCase();
+    const q = text.trim().toLowerCase();
+    setQuery(text);
 
-    if (!query) {
+    if (!q) {
       setProductsFiltered(products);
       return;
     }
 
     setProductsFiltered(
-      products.filter((p) => p.name.toLowerCase().includes(query))
+      products.filter((p) => p.name.toLowerCase().includes(q)),
     );
   };
 
@@ -52,40 +49,33 @@ const ProductContainer = () => {
 
   const onBlur = () => {
     setFocus(false);
+    setQuery('');
     setProductsFiltered(products);
   };
 
-  const keyExtractor = (item) =>
-    String(item.id ?? item._id ?? item.name);
+  const keyExtractor = (item) => String(item.id ?? item._id ?? item.name);
 
   const renderGridItem = ({ item }) => <ProductList item={item} />;
 
   return (
     <View style={styles.screen}>
       {/* Search bar */}
-      <Box px="$4" mt="$4">
-        <Input variant="rounded" size="lg">
-          <InputSlot pl="$3">
-            <InputIcon as={SearchIcon} />
-          </InputSlot>
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search"
+          value={query}
+          onFocus={openList}
+          onChangeText={searchProduct}
+        />
+        {focus && (
+          <TouchableOpacity onPress={onBlur} style={styles.clearButton}>
+            <Text style={styles.clearText}>×</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
-          <InputField
-            placeholder="Search"
-            onFocus={openList}
-            onChangeText={searchProduct}
-          />
-
-          {focus && (
-            <InputSlot pr="$3">
-              <Pressable onPress={onBlur}>
-                <Icon as={XIcon} />
-              </Pressable>
-            </InputSlot>
-          )}
-        </Input>
-      </Box>
-
-      <Text style={styles.title}>Product Container</Text>
+      <Banner />
 
       {focus ? (
         <SearchedProduct productsFiltered={productsFiltered} />
@@ -109,11 +99,26 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: 'gainsboro',
   },
-  title: {
-    marginTop: 16,
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginHorizontal: 16,
-    fontSize: 18,
-    fontWeight: '600',
+    marginTop: 16,
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    paddingHorizontal: 12,
+    elevation: 2,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 8,
+  },
+  clearButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  clearText: {
+    fontSize: 20,
   },
   listContainer: {
     flex: 1,
