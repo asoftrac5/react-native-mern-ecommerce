@@ -3,10 +3,11 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
-  FlatList,
   TextInput,
   Text,
   TouchableOpacity,
+  Dimensions,
+  ScrollView,
 } from 'react-native';
 
 import ProductList from './ProductList';
@@ -17,56 +18,59 @@ import CategoryFilter from './CategoryFilter';
 const productsData = require('../../assets/data/products.json');
 const categoriesData = require('../../assets/data/categories.json');
 
+const { height } = Dimensions.get('window');
+
+// helper: normalize category id from a product
+const getCategoryIdFromProduct = (product) =>
+  product?.category?.$oid ??
+  product?.category?._id?.$oid ??
+  product?.category?._id ??
+  product?.categoryId ??
+  null;
+
+// helper: normalize category id from category object
+const getCategoryId = (cat) =>
+  cat?._id?.$oid ?? cat?._id ?? cat?.id ?? cat?.$oid ?? String(cat ?? '');
+
 const ProductContainer = () => {
-  const [products, setProducts] = useState([]);           // full list (for reference)
-  const [initialState, setInitialState] = useState([]);   // same as products, easier to reason about
-  const [productsByCategory, setProductsByCategory] = useState([]); // list after category filter
-  const [productsFiltered, setProductsFiltered] = useState([]);     // list after text search
-  const [categories, setCategories] = useState([]);
-  const [active, setActive] = useState(-1);               // -1 = "All"
+  const [products, setProducts] = useState([]);
+  const [productsFiltered, setProductsFiltered] = useState([]);
   const [focus, setFocus] = useState(false);
   const [query, setQuery] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [active, setActive] = useState(-1);
+  const [initialState, setInitialState] = useState([]);
 
-  // load data once
   useEffect(() => {
     setProducts(productsData);
-    setInitialState(productsData);
-    setProductsByCategory(productsData);
     setProductsFiltered(productsData);
     setCategories(categoriesData);
-    setActive(-1);
+    setInitialState(productsData);
     setFocus(false);
 
     return () => {
       setProducts([]);
-      setInitialState([]);
-      setProductsByCategory([]);
       setProductsFiltered([]);
       setCategories([]);
-      setActive(-1);
+      setInitialState([]);
       setFocus(false);
-      setQuery('');
+      setActive(-1);
     };
   }, []);
 
-  // text search (runs on top of current category selection)
+  // text search (used when focus === true)
   const searchProduct = (text) => {
     const q = text.trim().toLowerCase();
     setQuery(text);
 
-    const baseList = productsByCategory.length
-      ? productsByCategory
-      : initialState;
-
     if (!q) {
-      setProductsFiltered(baseList);
+      setProductsFiltered(products);
       return;
     }
 
-    const filtered = baseList.filter((p) =>
-      p.name.toLowerCase().includes(q),
+    setProductsFiltered(
+      products.filter((p) => p.name.toLowerCase().includes(q)),
     );
-    setProductsFiltered(filtered);
   };
 
   const openList = () => setFocus(true);
@@ -74,46 +78,32 @@ const ProductContainer = () => {
   const onBlur = () => {
     setFocus(false);
     setQuery('');
-    // when we close search, go back to current category selection
-    setProductsFiltered(
-      productsByCategory.length ? productsByCategory : initialState,
-    );
+    setProductsFiltered(products);
   };
 
   // filter by category (called from CategoryFilter)
   const categoryFilter = (categoryId) => {
-    // reset search when changing category
-    setQuery('');
-    setFocus(false);
-
     if (categoryId === 'all') {
-      setProductsByCategory(initialState);
       setProductsFiltered(initialState);
       setActive(-1);
       return;
     }
 
-    const filteredByCategory = initialState.filter((p) => {
-      const catIdFromProduct =
-        p.category?._id ?? p.category?.id ?? p.categoryId;
-      return catIdFromProduct === categoryId;
-    });
+    const filtered = initialState.filter(
+      (p) => getCategoryIdFromProduct(p) === categoryId,
+    );
 
-    setProductsByCategory(filteredByCategory);
-    setProductsFiltered(filteredByCategory);
+    setProductsFiltered(filtered);
 
     const idx = categories.findIndex(
-      (c) => (c._id ?? c.id) === categoryId,
+      (c) => getCategoryId(c) === categoryId,
     );
     setActive(idx);
+    setFocus(false);
   };
 
-  const keyExtractor = (item) => String(item.id ?? item._id ?? item.name);
-
-  const renderGridItem = ({ item }) => <ProductList item={item} />;
-
   return (
-    <View style={styles.screen}>
+    <ScrollView style={styles.screen}>
       {/* Search bar */}
       <View style={styles.searchContainer}>
         <TextInput
@@ -130,30 +120,39 @@ const ProductContainer = () => {
         )}
       </View>
 
-      {/* Banner carousel */}
       <Banner />
 
-      {/* Category badges */}
+      {/* Category filter */}
       <CategoryFilter
         categories={categories}
         active={active}
         categoryFilter={categoryFilter}
       />
 
-      {/* Products grid / search results */}
       {focus ? (
         <SearchedProduct productsFiltered={productsFiltered} />
       ) : (
         <View style={styles.listContainer}>
-          <FlatList
-            data={productsFiltered}
-            numColumns={2}
-            renderItem={renderGridItem}
-            keyExtractor={keyExtractor}
-          />
+          {productsFiltered.length > 0 ? (
+            productsFiltered.map((item) => (
+              <ProductList
+                key={
+                  item._id?.$oid ??
+                  item._id ??
+                  item.id ??
+                  item.name
+                }
+                item={item}
+              />
+            ))
+          ) : (
+            <View style={styles.center}>
+              <Text>No products found</Text>
+            </View>
+          )}
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 };
 
@@ -185,9 +184,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   listContainer: {
-    flex: 1,
+    minHeight: height / 2,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingTop: 16,
     paddingHorizontal: 4,
+  },
+  center: {
+    height: height / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

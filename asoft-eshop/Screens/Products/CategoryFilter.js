@@ -8,6 +8,10 @@ import {
   Text,
 } from 'react-native';
 
+// helper: always return a plain string id
+const getCategoryId = (cat) =>
+  cat?._id?.$oid ?? cat?._id ?? cat?.id ?? cat?.$oid ?? String(cat ?? '');
+
 const CategoryFilter = ({
   categories = [],
   active = -1,
@@ -21,7 +25,7 @@ const CategoryFilter = ({
       style={styles.scroll}
     >
       <View style={styles.row}>
-        {/* "All" badge (virtual category) */}
+        {/* "All" badge */}
         <TouchableOpacity
           onPress={() => categoryFilter('all')}
           style={[
@@ -39,14 +43,14 @@ const CategoryFilter = ({
           </Text>
         </TouchableOpacity>
 
-        {/* Real categories from JSON */}
+        {/* Category badges */}
         {categories.map((cat, index) => {
-          const catId = cat._id ?? cat.id;
+          const catId = getCategoryId(cat);
           const isActive = active === index;
 
           return (
             <TouchableOpacity
-              key={catId ?? cat.name ?? index}
+              key={catId || cat.name || index}
               onPress={() => categoryFilter(catId)}
               style={[
                 styles.badge,
