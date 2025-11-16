@@ -6,10 +6,10 @@ import {
   StyleSheet,
   Button,
   TouchableOpacity,
-  Image,
-  ScrollView,
   SafeAreaView,
 } from "react-native";
+import { SwipeListView } from "react-native-swipe-list-view";
+import CartItem from "./CartItem";
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 
@@ -29,42 +29,41 @@ const Cart = (props) => {
       {props.cartItems.length ? (
         <SafeAreaView style={styles.container}>
           <Text style={styles.title}>Cart</Text>
-          <ScrollView 
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollViewContent}
-          >
-            {props.cartItems.map((data, index) => {
-              return (
-                <View style={styles.listItem} key={index}>
-                  <View style={styles.left}>
-                    <Image
-                      style={styles.thumbnail}
-                      source={{
-                        uri: data.product.image
-                          ? data.product.image
-                          : "https://cdn.pixabay.com/photo/2012/04/01/17/29/box-23649_960_720.png",
-                      }}
-                    />
-                  </View>
-                  <View style={styles.body}>
-                    <View style={styles.bodyLeft}>
-                      <Text style={styles.productName}>{data.product.name}</Text>
-                    </View>
-                    <View style={styles.bodyRight}>
-                      <Text style={styles.productPrice}>$ {data.product.price}</Text>
-                    </View>
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
+          <SwipeListView 
+            data={props.cartItems}
+            renderItem={(data) => (
+              <CartItem item={data} />
+            )}
+            renderHiddenItem={(data) => (
+              <View style={styles.hiddenContainer}>
+                <TouchableOpacity 
+                  style={styles.hiddenButton}
+                  onPress={() => props.removeFromCart(data.item)}
+                >
+                  <FontAwesome name="trash" color={"white"} size={30} />
+                </TouchableOpacity>
+              </View>
+            )}
+            disableRightSwipe={true}
+            previewOpenDelay={3000}
+            friction={1000}
+            tension={40}
+            leftOpenValue={75}
+            stopLeftSwipe={75}
+            rightOpenValue={-75}
+            keyExtractor={(item, index) => index.toString()}
+            contentContainerStyle={styles.listContent}
+          />
           <View style={styles.bottomContainer}>
             <View style={styles.bottomLeft}>
               <Text style={styles.totalPrice}>$ {total.toFixed(2)}</Text>
             </View>
             <View style={styles.bottomRight}>
-              <Button title="Clear" color="red" 
-              onPress={() => props.clearCart()}/>
+              <Button 
+                title="Clear" 
+                color="red" 
+                onPress={() => props.clearCart()}
+              />
             </View>
             <View style={styles.bottomRight}>
               <Button 
@@ -95,9 +94,10 @@ const mapStateToProps = (state) => {
 };
 
 const mapDispatchToProps = (dispatch) => {
-    return {
-        clearCart: () => dispatch(actions.clearCart())
-    }
+  return {
+    clearCart: () => dispatch(actions.clearCart()),
+    removeFromCart: (item) => dispatch(actions.removeFromCart(item))
+  }
 }
 
 const styles = StyleSheet.create({
@@ -113,11 +113,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: "#333",
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollViewContent: {
-    paddingBottom: 100, // Space for bottom container
+  listContent: {
+    paddingBottom: 20, // Space before bottom container
   },
   emptyContainer: {
     height: height,
@@ -134,53 +131,6 @@ const styles = StyleSheet.create({
   emptySubText: {
     fontSize: 14,
     color: "#999",
-  },
-  listItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "white",
-    justifyContent: "flex-start",
-    padding: 15,
-    marginHorizontal: 10,
-    marginVertical: 5,
-    borderRadius: 10,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  left: {
-    marginRight: 15,
-  },
-  thumbnail: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-    backgroundColor: "#f0f0f0",
-  },
-  body: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  bodyLeft: {
-    flex: 1,
-    paddingRight: 10,
-  },
-  bodyRight: {
-    alignItems: "flex-end",
-  },
-  productName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-  },
-  productPrice: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "orange",
   },
   bottomContainer: {
     flexDirection: "row",
@@ -209,6 +159,21 @@ const styles = StyleSheet.create({
     color: "red",
     marginLeft: 10,
   },
+  hiddenContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+    flexDirection: "row",
+    marginHorizontal: 10,
+    marginVertical: 5,
+  },
+  hiddenButton: {
+    backgroundColor: "red",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 30,
+    height: 110,
+    borderRadius: 10,
+  }
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Cart);
