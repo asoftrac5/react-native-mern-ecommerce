@@ -8,6 +8,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import HomeNavigator from "./HomeNavigator";
 import CartNavigator from "./CartNavigator";
 
+import CartIcon from "../Shared/CartIcon";
+
 const Tab = createBottomTabNavigator();
 
 const Main = () => {
@@ -40,12 +42,15 @@ const Main = () => {
                 component={CartNavigator}
                 options={{
                     tabBarIcon: ({ color }) => (
-                        <FontAwesome 
+                        <View>
+                            <FontAwesome 
                             name="shopping-cart"
                             style={{ position: "relative" }}
                             color={ color }
                             size={ 30 }
-                        />
+                            />
+                            <CartIcon />
+                        </View>
                     )
                 }}
             />

@@ -11,7 +11,7 @@ import store from './Redux/store';
 // Navigators
 import Main from './Navigators/Main';
 
-import Header from './Screens/Shared/Header';
+import Header from './Shared/Header';
 import ProductContainer from './Screens/Products/ProductContainer';
 
 LogBox.ignoreAllLogs(true);

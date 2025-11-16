@@ -12,7 +12,7 @@ import {
 
 import ProductList from "./ProductList";
 import SearchedProduct from "./SearchedProducts";
-import Banner from "../Shared/Banner";
+import Banner from "../../Shared/Banner";
 import CategoryFilter from "./CategoryFilter";
 
 const productsData = require("../../assets/data/products.json");
