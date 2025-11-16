@@ -1,5 +1,5 @@
 // Screens/Products/SearchedProducts.js
-import React from 'react';
+import React from "react";
 import {
   StyleSheet,
   Dimensions,
@@ -8,77 +8,114 @@ import {
   Image,
   Text,
   TouchableOpacity,
-} from 'react-native';
+} from "react-native";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const FALLBACK_IMAGE =
-  'https://cdn.pixabay.com/photo/2012/04/01/17/29/box-23649_960_720.png';
+  "https://cdn.pixabay.com/photo/2012/04/01/17/29/box-23649_960_720.png";
 
-const SearchedProduct = ({ productsFiltered = [], onSelect }) => {
+/**
+ * SearchedProduct
+ * - Accepts either an `onSelect(item)` callback OR `navigation` prop.
+ * - If onSelect is provided it is used (keeps previous behaviour).
+ * - Otherwise it will call navigation.navigate("Product Detail", { item }).
+ */
+const SearchedProduct = ({ productsFiltered = [], onSelect, navigation }) => {
   if (!productsFiltered || productsFiltered.length === 0) {
     return (
       <View style={styles.center}>
         <Text>No products match the selected criteria</Text>
+        <Text>Add products to the products list</Text>
       </View>
     );
   }
 
+  const handlePress = (item) => {
+    if (typeof onSelect === "function") {
+      onSelect(item);
+      return;
+    }
+
+    // fallback: use navigation if available
+    navigation?.navigate?.("Product Detail", { item });
+  };
+
   return (
-    <ScrollView style={{ width }}>
-      {productsFiltered.map((item, index) => (
-        <TouchableOpacity
-          key={item.id ?? item._id ?? item.name ?? index}
-          onPress={() => onSelect?.(item)}
-          style={styles.row}
-        >
-          <Image
-            source={{ uri: item.image || FALLBACK_IMAGE }}
-            style={styles.thumb}
-          />
-          <View style={styles.info}>
-            <Text style={styles.name}>{item.name}</Text>
-            {item.description ? (
-              <Text style={styles.desc} numberOfLines={2}>
-                {item.description}
+    <ScrollView style={styles.wrap}>
+      {productsFiltered.map((item, index) => {
+        const key =
+          item?._id?.$oid ??
+          item?._id ??
+          item?.id ??
+          item?.name ??
+          String(index);
+
+        return (
+          <TouchableOpacity
+            key={key}
+            onPress={() => handlePress(item)}
+            style={styles.row}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+          >
+            <Image
+              source={{ uri: item?.image || FALLBACK_IMAGE }}
+              style={styles.thumb}
+            />
+            <View style={styles.info}>
+              <Text style={styles.name}>
+                {item?.name ?? item?.title ?? "Untitled product"}
               </Text>
-            ) : null}
-          </View>
-        </TouchableOpacity>
-      ))}
+              {item?.description ? (
+                <Text style={styles.desc} numberOfLines={2}>
+                  {item.description}
+                </Text>
+              ) : null}
+            </View>
+          </TouchableOpacity>
+        );
+      })}
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
+  wrap: {
+    width,
     paddingVertical: 8,
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: "gainsboro",
+  },
+  row: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    alignItems: "center",
+    backgroundColor: "#fff",
+    marginBottom: 8,
   },
   thumb: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 8,
     marginRight: 12,
+    backgroundColor: "#eee",
   },
   info: {
     flex: 1,
   },
   name: {
-    fontWeight: '600',
-    marginBottom: 2,
+    fontWeight: "600",
+    marginBottom: 4,
   },
   desc: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
   },
   center: {
-    width: '100%',
+    width: "100%",
     paddingVertical: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
