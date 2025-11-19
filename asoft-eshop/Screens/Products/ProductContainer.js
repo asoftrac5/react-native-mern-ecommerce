@@ -16,7 +16,8 @@ import { SearchIcon, XIcon } from 'lucide-react-native';
 import ProductList from './ProductList';
 import SearchedProduct from './SearchedProducts';
 
-const data = require('../../assets/data/products.json');
+const productsData = require("../../assets/data/products.json");
+const categoriesData = require("../../assets/data/categories.json");
 
 const ProductContainer = () => {
   const [products, setProducts] = useState([]);
@@ -128,3 +129,4 @@ const styles = StyleSheet.create({
 });
 
 export default ProductContainer;
+
