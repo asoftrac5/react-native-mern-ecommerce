@@ -91,7 +91,7 @@ const Checkout = (props) => {
                     <TouchableOpacity 
                         style={styles.pickerButton}
                         onPress={() => {
-                            console.log("Picker button pressed");
+                            // console.log("Picker button pressed");
                             setModalVisible(true);
                         }}
                         activeOpacity={0.7}
@@ -108,7 +108,7 @@ const Checkout = (props) => {
                         transparent={true}
                         visible={modalVisible}
                         onRequestClose={() => {
-                            console.log("Modal close requested");
+                            // console.log("Modal close requested");
                             setModalVisible(false);
                         }}
                     >
@@ -228,3 +228,11 @@ const mapStateToProps = (state) => {
 }
 
 export default connect(mapStateToProps)(Checkout);
+
+
+// Connect in LinkedIn and try to text them now and then
+// Every 7 days. 
+// Can I give an interview preps
+// 
+
+// 
