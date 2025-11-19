@@ -5,7 +5,8 @@ import {
   StyleSheet, 
   Dimensions, 
   ScrollView, 
-  Button
+  Button,
+  Image
 } from "react-native";
 import { connect } from "react-redux";
 import * as actions from "../../../Redux/Actions/cartActions";
@@ -13,13 +14,13 @@ import * as actions from "../../../Redux/Actions/cartActions";
 var { width, height } = Dimensions.get("window");
 
 const Confirm = (props) => {
-
   const confirmOrder = () => {
-    setTimeout (() => {
-        props.clearCart();
-        props.navigation.navigate(act)
-    })
-  }
+    setTimeout(() => {
+      props.clearCart();
+      props.navigation.navigate("Cart");
+    }, 500);
+  };
+
   const confirm = props.route.params;
 
   return (
@@ -30,6 +31,7 @@ const Confirm = (props) => {
 
       {props.route.params ? (
         <View style={styles.shippingContainer}>
+          {/* Shipping Address Section */}
           <Text style={styles.shippingTitle}>Shipping To:</Text>
           <View style={styles.shippingDetails}>
             <Text style={styles.detailText}>
@@ -48,49 +50,60 @@ const Confirm = (props) => {
               Country: {confirm.order.order.country}
             </Text>
           </View>
+
+          {/* Order Items Section */}
           <Text style={styles.shippingTitle}>Items</Text>
           {confirm.order.order.orderItems.map((x) => {
             return (
-                <ListItem 
-                style={styles.listItem}
-                key={x.product.name}
-                avatar
-                >
-                    <left>
-                        <Thumbnail source={{ uri: x.product.image}} />
-                    </left>
-                    <Body style={styles.body}>
-                        <Left>
-                            <Text>{x.product.name}</Text>
-                        </Left>
-                        <Right>
-                            <Text>$ {x.product.price}</Text>
-                        </Right>
-                    </Body>
-                </ListItem>
-            )
+              <View style={styles.listItem} key={x.product.name}>
+                {/* Left: Product Image */}
+                <View style={styles.imageContainer}>
+                  <Image 
+                    source={{ uri: x.product.image }} 
+                    style={styles.thumbnail}
+                    resizeMode="contain"
+                  />
+                </View>
+
+                {/* Body: Product Details */}
+                <View style={styles.body}>
+                  <View style={styles.productLeft}>
+                    <Text style={styles.productName} numberOfLines={2}>
+                      {x.product.name}
+                    </Text>
+                  </View>
+                  <View style={styles.productRight}>
+                    <Text style={styles.productPrice}>
+                      $ {x.product.price}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            );
           })}
         </View>
       ) : null}
-      <View style={{ alignItems: "center", margin: 20 }}>
-        <Button title={'Place order'}/>
+
+      {/* Place Order Button */}
+      <View style={styles.buttonContainer}>
+        <Button title="Place Order" onPress={confirmOrder} color="#007aff" />
       </View>
     </ScrollView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
     minHeight: height,
     padding: 8,
     alignContent: "center",
-    backgroundColor: "white",
+    backgroundColor: "#f5f5f5",
   },
   titleContainer: {
     justifyContent: "center",
     alignItems: "center",
     margin: 8,
+    marginBottom: 15,
   },
   title: {
     fontSize: 20,
@@ -108,6 +121,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
+    paddingBottom: 10,
   },
   shippingTitle: {
     alignSelf: "center",
@@ -121,6 +135,8 @@ const styles = StyleSheet.create({
     padding: 8,
     paddingHorizontal: 15,
     paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
   detailText: {
     fontSize: 14,
@@ -129,16 +145,53 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   listItem: {
+    flexDirection: "row",
     alignItems: "center",
     backgroundColor: "white",
-    justifyContent: "center",
-    width: width / 1.2
+    width: width / 1.2,
+    alignSelf: "center",
+    padding: 10,
+    marginVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  imageContainer: {
+    marginRight: 10,
+  },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
   },
   body: {
-    margin: 10,
+    flex: 1,
+    flexDirection: "row",
     alignItems: "center",
-    flexDirection: "row"
-  }
+    justifyContent: "space-between",
+  },
+  productLeft: {
+    flex: 1,
+    marginRight: 10,
+  },
+  productName: {
+    fontSize: 14,
+    color: "#333",
+    fontWeight: "500",
+  },
+  productRight: {
+    alignItems: "flex-end",
+  },
+  productPrice: {
+    fontSize: 14,
+    color: "#007aff",
+    fontWeight: "bold",
+  },
+  buttonContainer: {
+    alignItems: "center",
+    margin: 20,
+    marginTop: 30,
+  },
 });
 
 const mapStateToProps = (state) => {
