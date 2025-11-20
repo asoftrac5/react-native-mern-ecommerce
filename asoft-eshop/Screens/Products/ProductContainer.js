@@ -10,12 +10,14 @@ import {
   ScrollView,
 } from "react-native";
 
+import baseURL from "../../assets/common/baseUrl";
+import axios from "axios";
+
 import ProductList from "./ProductList";
 import SearchedProduct from "./SearchedProducts";
 import Banner from "../../Shared/Banner";
 import CategoryFilter from "./CategoryFilter";
 
-const productsData = require("../../assets/data/products.json");
 const categoriesData = require("../../assets/data/categories.json");
 
 const { height } = Dimensions.get("window");
@@ -42,11 +44,32 @@ const ProductContainer = (props) => {
   const [initialState, setInitialState] = useState([]);
 
   useEffect(() => {
-    setProducts(productsData);
-    setProductsFiltered(productsData);
-    setCategories(categoriesData);
-    setInitialState(productsData);
     setFocus(false);
+
+    // Fetch products
+    axios
+      .get(`${baseURL}products`)
+      .then((res) => {
+        // console.log("Products fetched:", res.data); // Add this to debug
+        setProducts(res.data);
+        setProductsFiltered(res.data);
+        setInitialState(res.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching products:", error);
+        console.error("Error details:", error.response?.data);
+      });
+
+    // Fetch categories
+    axios
+      .get(`${baseURL}categories`)
+      .then((res) => {
+        // console.log("Categories fetched:", res.data); // Add this to debug
+        setCategories(res.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching categories:", error);
+      });
 
     return () => {
       setProducts([]);
@@ -138,7 +161,11 @@ const ProductContainer = (props) => {
           {productsFiltered.length > 0 ? (
             productsFiltered.map((item) => {
               const key =
-                item?._id?.$oid ?? item?._id ?? item?.id ?? item?.name ?? Math.random().toString();
+                item?._id?.$oid ??
+                item?._id ??
+                item?.id ??
+                item?.name ??
+                Math.random().toString();
               return (
                 <ProductList
                   key={key}
