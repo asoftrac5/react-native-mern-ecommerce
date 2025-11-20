@@ -1,5 +1,5 @@
 // Screens/Products/ProductContainer.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -9,6 +9,7 @@ import {
   Dimensions,
   ScrollView,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
 import baseURL from "../../assets/common/baseUrl";
 import axios from "axios";
@@ -41,43 +42,45 @@ const ProductContainer = (props) => {
   const [active, setActive] = useState(-1);
   const [initialState, setInitialState] = useState([]);
 
-  useEffect(() => {
-    setFocus(false);
-
-    // Fetch products
-    axios
-      .get(`${baseURL}products`)
-      .then((res) => {
-        // console.log("Products fetched:", res.data); // Add this to debug
-        setProducts(res.data);
-        setProductsFiltered(res.data);
-        setInitialState(res.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching products:", error);
-        console.error("Error details:", error.response?.data);
-      });
-
-    // Fetch categories
-    axios
-      .get(`${baseURL}categories`)
-      .then((res) => {
-        // console.log("Categories fetched:", res.data); // Add this to debug
-        setCategories(res.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching categories:", error);
-      });
-
-    return () => {
-      setProducts([]);
-      setProductsFiltered([]);
-      setCategories([]);
-      setInitialState([]);
+  useFocusEffect(
+    useCallback(() => {
       setFocus(false);
-      setActive(-1);
-    };
-  }, []);
+
+      // Fetch products
+      axios
+        .get(`${baseURL}products`)
+        .then((res) => {
+          // console.log("Products fetched:", res.data); // Add this to debug
+          setProducts(res.data);
+          setProductsFiltered(res.data);
+          setInitialState(res.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching products:", error);
+          console.error("Error details:", error.response?.data);
+        });
+
+      // Fetch categories
+      axios
+        .get(`${baseURL}categories`)
+        .then((res) => {
+          // console.log("Categories fetched:", res.data); // Add this to debug
+          setCategories(res.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching categories:", error);
+        });
+
+      return () => {
+        setProducts([]);
+        setProductsFiltered([]);
+        setCategories([]);
+        setInitialState([]);
+        setFocus(false);
+        setActive(-1);
+      };
+    }, [])
+  );
 
   // text search (used when focus === true)
   const searchProduct = (text) => {
