@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Dimensions,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -41,30 +42,32 @@ const ProductContainer = (props) => {
   const [categories, setCategories] = useState([]);
   const [active, setActive] = useState(-1);
   const [initialState, setInitialState] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
       setFocus(false);
+      setLoading(true);
 
       // Fetch products
       axios
         .get(`${baseURL}products`)
         .then((res) => {
-          // console.log("Products fetched:", res.data); // Add this to debug
           setProducts(res.data);
           setProductsFiltered(res.data);
           setInitialState(res.data);
+          setLoading(false);
         })
         .catch((error) => {
           console.error("Error fetching products:", error);
           console.error("Error details:", error.response?.data);
+          setLoading(false);
         });
 
       // Fetch categories
       axios
         .get(`${baseURL}categories`)
         .then((res) => {
-          // console.log("Categories fetched:", res.data); // Add this to debug
           setCategories(res.data);
         })
         .catch((error) => {
@@ -125,64 +128,73 @@ const ProductContainer = (props) => {
   };
 
   return (
-    <ScrollView style={styles.screen}>
-      {/* Search bar */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search"
-          value={query}
-          onFocus={openList}
-          onChangeText={searchProduct}
-        />
-        {focus && (
-          <TouchableOpacity onPress={onBlur} style={styles.clearButton}>
-            <Text style={styles.clearText}>×</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+    <>
+      {loading === false ? (
+        <ScrollView style={styles.screen}>
+          {/* Search bar */}
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search"
+              value={query}
+              onFocus={openList}
+              onChangeText={searchProduct}
+            />
+            {focus && (
+              <TouchableOpacity onPress={onBlur} style={styles.clearButton}>
+                <Text style={styles.clearText}>×</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
-      <Banner />
+          <Banner />
 
-      {/* Category filter */}
-      <CategoryFilter
-        categories={categories}
-        active={active}
-        categoryFilter={categoryFilter}
-      />
+          {/* Category filter */}
+          <CategoryFilter
+            categories={categories}
+            active={active}
+            categoryFilter={categoryFilter}
+          />
 
-      {focus ? (
-        // pass navigation so SearchedProduct can navigate to SingleProduct
-        <SearchedProduct
-          productsFiltered={productsFiltered}
-          navigation={props.navigation}
-        />
-      ) : (
-        <View style={styles.listContainer}>
-          {productsFiltered.length > 0 ? (
-            productsFiltered.map((item) => {
-              const key =
-                item?._id?.$oid ??
-                item?._id ??
-                item?.id ??
-                item?.name ??
-                Math.random().toString();
-              return (
-                <ProductList
-                  key={key}
-                  item={item}
-                  navigation={props.navigation}
-                />
-              );
-            })
+          {focus ? (
+            // pass navigation so SearchedProduct can navigate to SingleProduct
+            <SearchedProduct
+              productsFiltered={productsFiltered}
+              navigation={props.navigation}
+            />
           ) : (
-            <View style={styles.center}>
-              <Text>No products found</Text>
+            <View style={styles.listContainer}>
+              {productsFiltered.length > 0 ? (
+                productsFiltered.map((item) => {
+                  const key =
+                    item?._id?.$oid ??
+                    item?._id ??
+                    item?.id ??
+                    item?.name ??
+                    Math.random().toString();
+                  return (
+                    <ProductList
+                      key={key}
+                      item={item}
+                      navigation={props.navigation}
+                    />
+                  );
+                })
+              ) : (
+                <View style={styles.center}>
+                  <Text>No products found</Text>
+                </View>
+              )}
             </View>
           )}
+        </ScrollView>
+      ) : (
+        // Loading indicator
+        <View style={[styles.center, styles.loadingContainer]}>
+          <ActivityIndicator size="large" color="red" />
         </View>
       )}
-    </ScrollView>
+    </>
   );
 };
 
@@ -221,9 +233,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   center: {
-    height: height / 2,
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  loadingContainer: {
+    backgroundColor: "#f2f2f2",
   },
 });
 
