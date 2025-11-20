@@ -18,8 +18,6 @@ import SearchedProduct from "./SearchedProducts";
 import Banner from "../../Shared/Banner";
 import CategoryFilter from "./CategoryFilter";
 
-const categoriesData = require("../../assets/data/categories.json");
-
 const { height } = Dimensions.get("window");
 
 // helper: normalize category id from a product
