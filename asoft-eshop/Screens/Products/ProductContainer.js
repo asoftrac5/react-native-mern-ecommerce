@@ -1,6 +1,5 @@
 // Screens/Products/ProductContainer.js
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
+import React, { useState, useCallback } from "react";
 import {
   Box,
   Input,
@@ -10,30 +9,71 @@ import {
   Icon,
   Pressable,
   Text,
-} from '@gluestack-ui/themed';
-import { SearchIcon, XIcon } from 'lucide-react-native';
+  TouchableOpacity,
+  Dimensions,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
-import ProductList from './ProductList';
-import SearchedProduct from './SearchedProducts';
+import baseURL from "../../assets/common/baseUrl";
+import axios from "axios";
 
-const productsData = require("../../assets/data/products.json");
-const categoriesData = require("../../assets/data/categories.json");
+import ProductList from "./ProductList";
+import SearchedProduct from "./SearchedProducts";
+import Banner from "../../Shared/Banner";
+import CategoryFilter from "./CategoryFilter";
 
 const ProductContainer = () => {
   const [products, setProducts] = useState([]);
   const [productsFiltered, setProductsFiltered] = useState([]);
   const [focus, setFocus] = useState(false);
+  const [query, setQuery] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [active, setActive] = useState(-1);
+  const [initialState, setInitialState] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setProducts(data);
-    setProductsFiltered(data);
-
-    return () => {
-      setProducts([]);
-      setProductsFiltered([]);
+  useFocusEffect(
+    useCallback(() => {
       setFocus(false);
-    };
-  }, []);
+      setLoading(true);
+
+      // Fetch products
+      axios
+        .get(`${baseURL}products`)
+        .then((res) => {
+          setProducts(res.data);
+          setProductsFiltered(res.data);
+          setInitialState(res.data);
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching products:", error);
+          console.error("Error details:", error.response?.data);
+          setLoading(false);
+        });
+
+      // Fetch categories
+      axios
+        .get(`${baseURL}categories`)
+        .then((res) => {
+          setCategories(res.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching categories:", error);
+        });
+
+      return () => {
+        setProducts([]);
+        setProductsFiltered([]);
+        setCategories([]);
+        setInitialState([]);
+        setFocus(false);
+        setActive(-1);
+      };
+    }, [])
+  );
 
   // Filter products by name as the user types
   const searchProduct = (text) => {
@@ -65,47 +105,73 @@ const ProductContainer = () => {
   );
 
   return (
-    <View style={styles.screen}>
-      {/* Search bar just under the header logo */}
-      <Box px="$4" mt="$4">
-        <Input variant="rounded" size="lg">
-          <InputSlot pl="$3">
-            <InputIcon as={SearchIcon} />
-          </InputSlot>
+    <>
+      {loading === false ? (
+        <ScrollView style={styles.screen}>
+          {/* Search bar */}
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search"
+              value={query}
+              onFocus={openList}
+              onChangeText={searchProduct}
+            />
+            {focus && (
+              <TouchableOpacity onPress={onBlur} style={styles.clearButton}>
+                <Text style={styles.clearText}>×</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
-          <InputField
-            placeholder="Search"
-            onFocus={openList}
-            onChangeText={searchProduct}
+          <Banner />
+
+          {/* Category filter */}
+          <CategoryFilter
+            categories={categories}
+            active={active}
+            categoryFilter={categoryFilter}
           />
 
-          {focus && (
-            <InputSlot pr="$3">
-              <Pressable onPress={onBlur}>
-                <Icon as={XIcon} />
-              </Pressable>
-            </InputSlot>
+          {focus ? (
+            // pass navigation so SearchedProduct can navigate to SingleProduct
+            <SearchedProduct
+              productsFiltered={productsFiltered}
+              navigation={props.navigation}
+            />
+          ) : (
+            <View style={styles.listContainer}>
+              {productsFiltered.length > 0 ? (
+                productsFiltered.map((item) => {
+                  const key =
+                    item?._id?.$oid ??
+                    item?._id ??
+                    item?.id ??
+                    item?.name ??
+                    Math.random().toString();
+                  return (
+                    <ProductList
+                      key={key}
+                      item={item}
+                      navigation={props.navigation}
+                    />
+                  );
+                })
+              ) : (
+                <View style={styles.center}>
+                  <Text>No products found</Text>
+                </View>
+              )}
+            </View>
           )}
-        </Input>
-      </Box>
-
-      <Text style={styles.title}>Product Container</Text>
-
-      {focus ? (
-        // Search mode – show vertical list of matches
-        <SearchedProduct productsFiltered={productsFiltered} />
+        </ScrollView>
       ) : (
-        // Normal mode – show 2-column product grid
-        <View style={styles.listContainer}>
-          <FlatList
-            data={products}
-            numColumns={2}
-            renderItem={renderGridItem}
-            keyExtractor={keyExtractor}
-          />
+        // Loading indicator
+        <View style={[styles.center, styles.loadingContainer]}>
+          <ActivityIndicator size="large" color="red" />
         </View>
       )}
-    </View>
+    </>
   );
 };
 
@@ -126,7 +192,14 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingHorizontal: 4,
   },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingContainer: {
+    backgroundColor: "#f2f2f2",
+  },
 });
 
 export default ProductContainer;
-
