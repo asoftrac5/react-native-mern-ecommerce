@@ -13,6 +13,7 @@ import Main from './Navigators/Main';
 
 import Header from './Shared/Header';
 import ProductContainer from './Screens/Products/ProductContainer';
+import Toast from 'react-native-toast-message';
 
 LogBox.ignoreAllLogs(true);
 
@@ -22,6 +23,7 @@ export default function App() {
       <NavigationContainer>
         <Header />
         <Main />
+        <Toast ref={(ref) => Toast.setRef(ref)} />
       </NavigationContainer>
     </Provider>
   );
