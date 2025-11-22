@@ -9,6 +9,9 @@ import {
   Button,
   SafeAreaView,
 } from "react-native";
+import { connect } from "react-redux";
+import * as actions from "../../Redux/Actions/cartActions";
+import Toast from "react-native-toast-message";
 
 const SingleProduct = (props) => {
   // get item from navigation params
@@ -52,13 +55,21 @@ const SingleProduct = (props) => {
           )}
           <Text style={styles.availability}>Availability: {availability}</Text>
 
-          {/* Example action (you can wire to cart later) */}
+          {/* Add to Cart Button */}
           <View style={styles.buttonWrap}>
             <Button
               title="Add to Cart"
               onPress={() => {
-                // placeholder: navigation to cart or toast
-                props.navigation?.navigate?.("Cart");
+                // Add item to Redux cart
+                props.addItemToCart(item);
+                
+                // Show success toast
+                Toast.show({
+                  topOffset: 60,
+                  type: "success",
+                  text1: `${item.name} added to Cart`,
+                  text2: "Go to your cart to complete order"
+                });
               }}
             />
           </View>
@@ -130,4 +141,12 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SingleProduct;
+// Map Redux actions to props
+const mapDispatchToProps = (dispatch) => {
+  return {
+    addItemToCart: (product) => dispatch(actions.addToCart({ quantity: 1, product }))
+  };
+};
+
+// Connect component to Redux
+export default connect(null, mapDispatchToProps)(SingleProduct);
