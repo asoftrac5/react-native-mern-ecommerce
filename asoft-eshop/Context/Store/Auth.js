@@ -1,5 +1,5 @@
 import React, { useReducer, useEffect, useState } from "react";
-import jwt_decode from "jwt-decode";
+import { jwtDecode } from "jwt-decode"; // Changed this line
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import AuthReducer from "../Reducers/Auth.reducer";
@@ -15,14 +15,24 @@ const Auth = props => {
 
     useEffect(() => {
         setShowChild(true);
-        if (AsyncStorage.jwt) {
-            const decoded = AsyncStorage.jwt ? AsyncStorage.jwt : "";
-            if (setShowChild) {
-                dispatch(setCurrentUser(jwt_decode(decoded)))
+        
+        // Check if user is already logged in
+        const checkAuth = async () => {
+            try {
+                const token = await AsyncStorage.getItem("jwt");
+                if (token) {
+                    const decoded = jwtDecode(token); // Changed this line
+                    dispatch(setCurrentUser(decoded));
+                }
+            } catch (error) {
+                console.log("Error reading token:", error);
             }
-        }
+        };
+        
+        checkAuth();
+        
         return () => setShowChild(false);
-    }, [])
+    }, []);
 
     if (!showChild) {
         return null;
@@ -36,7 +46,7 @@ const Auth = props => {
             >
                 {props.children}
             </AuthGlobal.Provider>
-        )
+        );
     }
 };
 
